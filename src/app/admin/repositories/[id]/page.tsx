@@ -1,0 +1,11 @@
+import { notFound } from "next/navigation";
+import { db } from "@/lib/db";
+import { managerPage } from "@/lib/admin";
+import { AdminNav } from "@/components/admin-nav";
+import { PageHeading } from "@/components/page-heading";
+import { CollectorAction } from "@/components/collector-controls";
+import { time } from "@/components/admin-format";
+export default async function RepositoryDetail({ params }: { params: Promise<{ id: string }> }) {
+  await managerPage(); const repo = await db.githubRepository.findUnique({ where: { id: (await params).id }, include: { skill: { select: { status: true, slug: true } } } }); if (!repo) notFound();
+  return <div className="shell page-content"><PageHeading eyebrow={`GITHUB ID ${repo.githubId}`} title={repo.fullName} description="采集资料与编辑内容分开保存；刷新不会覆盖已有中文审核内容。" /><AdminNav /><div className="flex gap-3 flex-wrap mb-6"><CollectorAction path={`/api/v1/admin/repositories/${repo.id}/refresh`} label="创建增量刷新任务" /><CollectorAction path={`/api/v1/admin/repositories/${repo.id}`} label={repo.syncEnabled ? "暂停自动发现更新" : "恢复自动发现更新"} method="PATCH" body={{ syncEnabled: !repo.syncEnabled }} navigate={false} /></div><div className="detail-grid"><div className="detail-main"><section className="panel"><h2>原始描述</h2><p className="prose-text">{repo.description ?? "未提供"}</p><a className="text-primary underline" href={repo.url} target="_blank" rel="noopener noreferrer">访问原始 GitHub 项目 →</a></section><section className="panel"><h2>README 摘录（非 AI 摘要）</h2><p className="notice">公开文档作为不可信资料保存，不作为系统指令或脚本执行。原始全文上限 256 KiB；此处为机械摘录。</p><p className="prose-text">{repo.readmeExcerpt ?? `暂无摘录：${repo.readmeState}`}</p></section></div><aside className="panel"><h2>采集记录</h2><dl className="metadata"><div><dt>Star / Fork</dt><dd>{repo.stars} / {repo.forks}</dd></div><div><dt>许可证</dt><dd>{repo.licenseSpdx ?? "未识别"}</dd></div><div><dt>源更新</dt><dd>{time(repo.sourceUpdatedAt)}</dd></div><div><dt>元数据采集</dt><dd>{time(repo.fetchedAt)}</dd></div><div><dt>README 采集</dt><dd>{time(repo.readmeFetchedAt)}</dd></div><div><dt>README 状态</dt><dd>{repo.readmeState}</dd></div><div><dt>资料版本</dt><dd>{repo.contentVersion}</dd></div><div><dt>条目状态</dt><dd>{repo.skill?.status ?? "无条目"}</dd></div><div><dt>归档状态</dt><dd>{repo.archived ? "已归档" : "未归档"}</dd></div></dl></aside></div></div>;
+}

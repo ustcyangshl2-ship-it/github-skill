@@ -1,0 +1,216 @@
+{
+  "source": "GitHub REST API /repos/{owner}/{repo}, retrieved through the connected GitHub read connector after local anonymous rate limiting",
+  "note": "真实公开元数据快照，非实时；不代表实测。仅保留必要字段。",
+  "repositories": [
+    {
+      "id": 1061953414,
+      "full_name": "anthropics/skills",
+      "html_url": "https://github.com/anthropics/skills",
+      "description": "Public repository for Agent Skills",
+      "stargazers_count": 180473,
+      "forks_count": 21382,
+      "topics": [
+        "agent-skills"
+      ],
+      "updated_at": "2026-10-11T17:23:25Z",
+      "archived": false,
+      "license": null,
+      "fetchedAt": "2026-10-11T17:40:20.234Z"
+    },
+    {
+      "id": 1073224795,
+      "full_name": "obra/superpowers",
+      "html_url": "https://github.com/obra/superpowers",
+      "description": "An agentic skills framework & software development methodology that works.",
+      "stargazers_count": 297521,
+      "forks_count": 26571,
+      "topics": [
+        "ai",
+        "brainstorming",
+        "coding",
+        "obra",
+        "sdlc",
+        "skills",
+        "subagent-driven-development",
+        "superpowers"
+      ],
+      "updated_at": "2026-10-11T17:37:47Z",
+      "archived": false,
+      "license": {
+        "spdx_id": "MIT",
+        "name": "MIT License"
+      },
+      "fetchedAt": "2026-10-11T17:40:20.250Z"
+    },
+    {
+      "id": 1112540808,
+      "full_name": "vercel-labs/agent-skills",
+      "html_url": "https://github.com/vercel-labs/agent-skills",
+      "description": "Vercel's official collection of agent skills",
+      "stargazers_count": 32223,
+      "forks_count": 2822,
+      "topics": [],
+      "updated_at": "2026-10-11T17:19:32Z",
+      "archived": false,
+      "license": null,
+      "fetchedAt": "2026-10-11T17:40:20.250Z"
+    },
+    {
+      "id": 888092115,
+      "full_name": "microsoft/markitdown",
+      "html_url": "https://github.com/microsoft/markitdown",
+      "description": "Python tool for converting files and office documents to Markdown.",
+      "stargazers_count": 189532,
+      "forks_count": 14097,
+      "topics": [
+        "autogen",
+        "autogen-extension",
+        "langchain",
+        "markdown",
+        "microsoft-office",
+        "openai",
+        "pdf"
+      ],
+      "updated_at": "2026-10-11T17:36:01Z",
+      "archived": false,
+      "license": {
+        "spdx_id": "MIT",
+        "name": "MIT License"
+      },
+      "fetchedAt": "2026-10-11T17:40:20.250Z"
+    },
+    {
+      "id": 866513204,
+      "full_name": "HKUDS/LightRAG",
+      "html_url": "https://github.com/HKUDS/LightRAG",
+      "description": "[EMNLP2025] LightRAG: Simple and Fast Retrieval-Augmented Generation",
+      "stargazers_count": 40068,
+      "forks_count": 5682,
+      "topics": [
+        "docling",
+        "genai",
+        "gpt",
+        "graphrag",
+        "knowledge-graph",
+        "large-language-models",
+        "llm",
+        "mineru",
+        "rag",
+        "ragas",
+        "retrieval-augmented-generation"
+      ],
+      "updated_at": "2026-10-11T16:10:06Z",
+      "archived": false,
+      "license": {
+        "spdx_id": "MIT",
+        "name": "MIT License"
+      },
+      "fetchedAt": "2026-10-11T17:40:20.250Z"
+    },
+    {
+      "id": 626805178,
+      "full_name": "langgenius/dify",
+      "html_url": "https://github.com/langgenius/dify",
+      "description": "Build Agentic workflows, RAG pipelines, with rich AI model and tool support on one collaborative workspace. Deploy on cloud, VPC, or self-hosted, so teams move from prototype to production without rebuilding the stack.",
+      "stargazers_count": 158153,
+      "forks_count": 24998,
+      "topics": [
+        "agent",
+        "agentic-ai",
+        "agentic-framework",
+        "agentic-workflow",
+        "ai",
+        "automation",
+        "claude",
+        "deepseek",
+        "genai",
+        "gpt",
+        "llm",
+        "low-code",
+        "mcp",
+        "nextjs",
+        "no-code",
+        "openai",
+        "python",
+        "skills",
+        "workflow"
+      ],
+      "updated_at": "2026-10-11T17:30:40Z",
+      "archived": false,
+      "license": {
+        "spdx_id": "NOASSERTION",
+        "name": "Other"
+      },
+      "fetchedAt": "2026-10-11T17:40:20.250Z"
+    },
+    {
+      "id": 701547123,
+      "full_name": "open-webui/open-webui",
+      "html_url": "https://github.com/open-webui/open-webui",
+      "description": "User-friendly AI Interface (Supports Ollama, OpenAI API, ...)",
+      "stargazers_count": 154300,
+      "forks_count": 22591,
+      "topics": [
+        "ai",
+        "llm",
+        "llm-ui",
+        "llm-webui",
+        "llms",
+        "mcp",
+        "ollama",
+        "ollama-webui",
+        "open-webui",
+        "openai",
+        "openapi",
+        "rag",
+        "self-hosted",
+        "ui",
+        "webui"
+      ],
+      "updated_at": "2026-10-11T17:36:35Z",
+      "archived": false,
+      "license": {
+        "spdx_id": "NOASSERTION",
+        "name": "Other"
+      },
+      "fetchedAt": "2026-10-11T17:40:20.250Z"
+    },
+    {
+      "id": 193215554,
+      "full_name": "n8n-io/n8n",
+      "html_url": "https://github.com/n8n-io/n8n",
+      "description": "Fair-code workflow automation platform with native AI capabilities. Combine visual building with custom code, self-host or cloud, 400+ integrations.",
+      "stargazers_count": 207001,
+      "forks_count": 61076,
+      "topics": [
+        "ai",
+        "apis",
+        "automation",
+        "cli",
+        "data-flow",
+        "development",
+        "integration-framework",
+        "integrations",
+        "ipaas",
+        "low-code",
+        "low-code-platform",
+        "mcp",
+        "mcp-client",
+        "mcp-server",
+        "n8n",
+        "no-code",
+        "self-hosted",
+        "typescript",
+        "workflow",
+        "workflow-automation"
+      ],
+      "updated_at": "2026-10-11T17:38:12Z",
+      "archived": false,
+      "license": {
+        "spdx_id": "NOASSERTION",
+        "name": "Other"
+      },
+      "fetchedAt": "2026-10-11T17:40:20.250Z"
+    }
+  ]
+}

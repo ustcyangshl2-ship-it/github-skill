@@ -1,0 +1,491 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  EDITOR
+  ADMIN
+}
+
+enum PublicationStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ResourceType {
+  UNKNOWN
+  SKILL
+  TOOL
+  FRAMEWORK
+}
+
+enum Difficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum VerificationState {
+  NOT_TESTED
+  TESTED
+  VERIFIED
+}
+
+enum TutorialAccess {
+  FREE
+  MEMBER
+}
+
+enum MembershipStatus {
+  ACTIVE
+  REVOKED
+}
+
+enum TaskStatus {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+}
+
+enum CollectionKind {
+  IMPORT
+  DISCOVER
+  REFRESH
+}
+
+enum AiStatus {
+  QUEUED
+  RUNNING
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  FAILED
+}
+
+model GithubRepository {
+  id              String   @id @default(cuid())
+  githubId        BigInt   @unique
+  fullName        String   @unique @db.VarChar(255)
+  url             String   @unique @db.VarChar(512)
+  description     String?  @db.Text
+  topics          String[]
+  stars           Int      @default(0)
+  forks           Int      @default(0)
+  licenseSpdx     String?  @db.VarChar(100)
+  licenseName     String?
+  sourceUpdatedAt DateTime
+  fetchedAt       DateTime @default(now())
+  readmeText      String?  @db.Text
+  readmeSha       String?
+  readmeEtag      String?
+  readmeExcerpt   String? @db.Text
+  readmeState     String @default("NOT_FETCHED")
+  readmeFetchedAt DateTime?
+  syncEnabled    Boolean @default(true)
+  contentVersion Int @default(1)
+  etag            String?
+  archived        Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  skill           Skill?
+  snapshots       RepositorySnapshot[]
+
+  @@index([sourceUpdatedAt])
+  @@index([fetchedAt])
+}
+
+model RepositorySnapshot {
+  id           String   @id @default(cuid())
+  repositoryId String
+  day          DateTime @db.Date
+  stars        Int
+  forks        Int
+  fetchedAt    DateTime
+  repository   GithubRepository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+
+  @@unique([repositoryId, day])
+  @@index([day])
+}
+
+model Skill {
+  id              String   @id @default(cuid())
+  repositoryId    String   @unique
+  slug            String   @unique @db.VarChar(200)
+  title           String   @db.VarChar(200)
+  summaryZh       String   @db.Text
+  descriptionZh   String   @db.Text
+  type            ResourceType
+  difficulty      Difficulty?
+  audience        String[]
+  scenarios       String[]
+  status          PublicationStatus @default(DRAFT)
+  featured        Boolean  @default(false)
+  editorialOrder  Int      @default(0)
+  version         Int      @default(1)
+  authorId        String?
+  reviewerId      String?
+  reviewedAt      DateTime?
+  publishedAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  repository      GithubRepository @relation(fields: [repositoryId], references: [id], onDelete: Restrict)
+  author          User? @relation("SkillAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  reviewer        User? @relation("SkillReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+  categories      SkillCategory[]
+  tags            SkillTag[]
+  platforms       SkillPlatform[]
+  collections     CollectionItem[]
+  reviews         Review[]
+  tutorials       Tutorial[]
+  favorites       Favorite[]
+  aiTasks         AiTask[]
+
+  @@index([status, type, publishedAt])
+  @@index([status, featured, editorialOrder])
+}
+
+model Category {
+  id       String @id @default(cuid())
+  slug     String @unique
+  name     String
+  icon     String
+  sort     Int @default(0)
+  parentId String?
+  parent   Category? @relation("CategoryTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children Category[] @relation("CategoryTree")
+  skills   SkillCategory[]
+}
+
+model SkillCategory {
+  skillId    String
+  categoryId String
+  skill      Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  @@id([skillId, categoryId])
+  @@index([categoryId])
+}
+
+model Tag {
+  id     String @id @default(cuid())
+  slug   String @unique
+  name   String
+  skills SkillTag[]
+}
+
+model SkillTag {
+  skillId String
+  tagId   String
+  skill   Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  tag     Tag @relation(fields: [tagId], references: [id], onDelete: Restrict)
+
+  @@id([skillId, tagId])
+  @@index([tagId])
+}
+
+model Platform {
+  id     String @id @default(cuid())
+  slug   String @unique
+  name   String
+  skills SkillPlatform[]
+}
+
+model SkillPlatform {
+  skillId    String
+  platformId String
+  skill      Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  platform   Platform @relation(fields: [platformId], references: [id], onDelete: Restrict)
+
+  @@id([skillId, platformId])
+  @@index([platformId])
+}
+
+model Collection {
+  id          String @id @default(cuid())
+  slug        String @unique
+  title       String
+  description String @db.Text
+  icon        String
+  status      PublicationStatus @default(DRAFT)
+  authorId    String?
+  author      User? @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  items       CollectionItem[]
+
+  @@index([status])
+}
+
+model CollectionItem {
+  collectionId String
+  skillId      String
+  position     Int @default(0)
+  note         String?
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  skill        Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([collectionId, skillId])
+  @@index([skillId])
+}
+
+model Review {
+  id           String @id @default(cuid())
+  skillId      String
+  authorId     String?
+  title        String
+  body         String @db.Text
+  score        Int?
+  verification VerificationState @default(NOT_TESTED)
+  testedAt     DateTime?
+  environment  String?
+  evidence     String? @db.Text
+  status       PublicationStatus @default(DRAFT)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  skill        Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  author       User? @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([skillId, status])
+}
+
+model Tutorial {
+  id          String @id @default(cuid())
+  slug        String @unique
+  title       String
+  excerpt     String @db.Text
+  access      TutorialAccess @default(FREE)
+  status      PublicationStatus @default(DRAFT)
+  skillId     String?
+  authorId    String?
+  reviewerId  String?
+  reviewedAt  DateTime?
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  skill       Skill? @relation(fields: [skillId], references: [id], onDelete: SetNull)
+  author      User? @relation("TutorialAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  reviewer    User? @relation("TutorialReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+  body        TutorialBody?
+
+  @@index([status, access, publishedAt])
+  @@index([skillId])
+}
+
+model TutorialBody {
+  tutorialId String @id
+  text       String @db.Text
+  tutorial   Tutorial @relation(fields: [tutorialId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String @id @default(cuid())
+  name          String?
+  email         String? @unique
+  emailVerified DateTime?
+  image         String?
+  role          Role @default(USER)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  accounts      Account[]
+  sessions      Session[]
+  favorites     Favorite[]
+  memberships   MembershipGrant[]
+  authoredSkills Skill[] @relation("SkillAuthor")
+  reviewedSkills Skill[] @relation("SkillReviewer")
+  authoredTutorials Tutorial[] @relation("TutorialAuthor")
+  reviewedTutorials Tutorial[] @relation("TutorialReviewer")
+  reviews       Review[]
+  collections   Collection[]
+  collectionTasks CollectionTask[]
+  reviewedAiTasks AiTask[]
+  auditLogs     AuditLog[]
+}
+
+model Account {
+  id                String @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String @id @default(cuid())
+  sessionToken String @unique
+  userId       String
+  expires      DateTime
+  user         User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Favorite {
+  userId    String
+  skillId   String
+  createdAt DateTime @default(now())
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill     Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([userId, skillId])
+  @@index([skillId])
+}
+
+model MembershipGrant {
+  id        String @id @default(cuid())
+  userId    String
+  status    MembershipStatus @default(ACTIVE)
+  startsAt  DateTime
+  expiresAt DateTime
+  source    String
+  createdAt DateTime @default(now())
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status, expiresAt])
+}
+
+model CollectionTask {
+  id            String @id @default(cuid())
+  kind          CollectionKind
+  status        TaskStatus @default(QUEUED)
+  dedupeKey     String @unique
+  requestKey    String
+  payload       Json
+  page          Int @default(1)
+  attempts      Int @default(0)
+  stepAttempts  Int @default(0)
+  nextAttemptAt DateTime @default(now())
+  leaseUntil    DateTime?
+  leaseToken    String?
+  searchComplete Boolean @default(false)
+  discoveredCount Int @default(0)
+  processedCount Int @default(0)
+  createdCount Int @default(0)
+  updatedCount Int @default(0)
+  unchangedCount Int @default(0)
+  failedCount Int @default(0)
+  pagesFetched Int @default(0)
+  maxAttempts Int @default(5)
+  finishedAt DateTime?
+  requestedById String?
+  errorCode     String?
+  retryScope    String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  requestedBy   User? @relation(fields: [requestedById], references: [id], onDelete: SetNull)
+  logs          CollectionTaskLog[]
+  items         CollectionTaskItem[]
+
+  @@index([status, nextAttemptAt])
+}
+
+model CollectionTaskItem {
+  id String @id @default(cuid())
+  taskId String
+  githubId BigInt?
+  url String
+  status TaskStatus @default(QUEUED)
+  attempts Int @default(0)
+  errorCode String?
+  result String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  task CollectionTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, url])
+  @@unique([taskId, githubId])
+  @@index([taskId, status, createdAt])
+}
+
+model CollectorRuntime {
+  id String @id
+  credentialsKey String?
+  leaseToken String?
+  leaseUntil DateTime?
+  nextRequestAt DateTime @default(now())
+  pausedUntil DateTime?
+  pauseReason String?
+  pauseScope String?
+  lastHeartbeatAt DateTime?
+}
+
+model CollectionTaskLog {
+  id        String @id @default(cuid())
+  taskId    String
+  level     String
+  message   String @db.Text
+  details   Json?
+  createdAt DateTime @default(now())
+  task      CollectionTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId, createdAt])
+}
+
+model AiTask {
+  id           String @id @default(cuid())
+  skillId      String
+  status       AiStatus @default(QUEUED)
+  dedupeKey    String @unique
+  inputHash    String
+  sourceVersion Int
+  provider     String
+  model        String
+  promptVersion String
+  result       Json?
+  errorCode    String?
+  attempts     Int @default(0)
+  nextAttemptAt DateTime @default(now())
+  leaseUntil   DateTime?
+  reviewerId   String?
+  reviewedAt   DateTime?
+  reviewNote   String? @db.Text
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  skill        Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  reviewer     User? @relation(fields: [reviewerId], references: [id], onDelete: SetNull)
+
+  @@index([status, nextAttemptAt])
+  @@index([skillId, createdAt])
+}
+
+model AuditLog {
+  id         String @id @default(cuid())
+  actorId    String?
+  action     String
+  entityType String
+  entityId   String
+  changes    Json?
+  createdAt  DateTime @default(now())
+  actor      User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([actorId, createdAt])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}

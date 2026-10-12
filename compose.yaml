@@ -1,0 +1,61 @@
+services:
+  db:
+    image: postgres:18.4-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-skillhub}
+      POSTGRES_USER: ${POSTGRES_USER:-skillhub}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  migrate:
+    build:
+      context: .
+      target: tools
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-skillhub}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-skillhub}?schema=public
+    command: ["npm", "run", "db:migrate"]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+  worker:
+    build:
+      context: .
+      target: tools
+    user: node
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-skillhub}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-skillhub}?schema=public&connection_limit=5
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+    command: ["npm", "run", "collector:worker"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+  web:
+    build:
+      context: .
+      target: runner
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3300:3000"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-skillhub}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-skillhub}?schema=public&connection_limit=5
+      NEXTAUTH_URL: ${NEXTAUTH_URL:?Set NEXTAUTH_URL}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:?Set NEXTAUTH_SECRET}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      LLM_BASE_URL: ${LLM_BASE_URL:-}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_MODEL: ${LLM_MODEL:-}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+volumes:
+  postgres_data:
